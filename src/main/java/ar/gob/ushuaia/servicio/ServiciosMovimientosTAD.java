@@ -1,93 +1,80 @@
 package ar.gob.ushuaia.servicio;
 
+import ar.gob.ushuaia.servicio.rest.GenusResource;
+import ar.gob.ushuaia.transferible.ConsultaFinalTADDTO;
 import ar.gob.ushuaia.transferible.ConsultaTADDTO;
+import ar.gob.ushuaia.transformador.TransformadorTAD;
 import io.vertx.core.json.JsonObject;
 import jakarta.annotation.Resource;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 
-
-@RequestScoped // @ApplicationScoped
+@ApplicationScoped
 @Transactional
 public class ServiciosMovimientosTAD {
 
     //por que no es solo un string? esta bien dejarlo escrito como cuando se usa dentro del metodo? o lo traemos desde app properties?.
-    @Resource(lookup = "java:global/url-webservice-genus")
-    private String urlWebServiceGenus;
+//    @Resource(lookup = "java:global/url-webservice-genus")
+//    private String urlWebServiceGenus;
+
+//    @Inject
+//    TransformadorTAD transformadorTAD;
+
+
+
+    @Inject
+    @RestClient
+    GenusResource genusResource;
 
 
     private static final Logger auditor = Logger.getLogger(ServiciosMovimientosTAD.class);
 
 
-    public Response obtenerMovimientos(@Valid ConsultaTADDTO tadDTO) throws URISyntaxException, IOException, InterruptedException {
 
-        auditor.debug("obtenerMovimientos - expediente: {} - {} - {}" + tadDTO.getTipo() + tadDTO.getNumero() + tadDTO.getAno());
+//    public Response obtenerMovimientos(@Valid ConsultaTADDTO tadDTO) {
+//        consultaFinalTADDTO.setAno(tadDTO.getAno());
+//        consultaFinalTADDTO.setNumero(tadDTO.getNumero());
+//        consultaFinalTADDTO.setTipo(tadDTO.getTipo());
+//        consultaFinalTADDTO.setAccion("getMovimientos");
+//        consultaFinalTADDTO.setAppId("L56pWB4pbn87v4");
+//        System.out.println("aaaa");
+//        Response response = genusResource.obtenerMovimientos(consultaFinalTADDTO);
+////        Response response = genusResource.obtenerMovimientos(transformadorTAD.convertirAConsultaFinal(tadDTO));
+//        System.out.println(response + "aaaa");
+//        return response;
+//    }
+
+    public Response obtenerMovimientos() {
+        ConsultaFinalTADDTO consultaFinalTADDTO = new ConsultaFinalTADDTO();
+        consultaFinalTADDTO.setAno(2024);
+        consultaFinalTADDTO.setNumero(1);
+        consultaFinalTADDTO.setTipo("E");
+        consultaFinalTADDTO.setAccion("getMovimientos");
+        consultaFinalTADDTO.setAppId("L56pWB4pbn87v4");
+        System.out.println("aaaa");
         try {
-            //basarse en la api de libros q consume numbers
-            HttpClient client = HttpClient.newHttpClient();
-            String URL = "https://expedientes.ushuaia.gob.ar/vub/webService";
 
-
-            JsonObject jsonBody = new JsonObject();
-            jsonBody.put("appId", "L56pWB4pbn87v4");
-            jsonBody.put("accion", "getMovimientos");
-            jsonBody.put("tipoPA", tadDTO.getTipo());
-            jsonBody.put("numeroPA", tadDTO.getNumero());
-            jsonBody.put("anioPA", tadDTO.getAno());
-
-            auditor.debug("body del post: " + jsonBody);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(URL))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody.toString(), StandardCharsets.UTF_8))
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("Respuesta del POST: " + response.body());
-
-            return Response.status(response.statusCode())
-                    .entity(response.body())
-                    .build();
+            Response response = genusResource.obtenerMovimientos(consultaFinalTADDTO);
+//            Object jsonObject = response.getEntity();
+            System.out.println(response + "aaaa");
+            return response;
+        } catch (Exception e) {
+            System.out.println("Error " + e);
+            return null;
         }
-        catch(Exception e){
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Error al procesar la solicitud")
-                    .build();
 
-        }
+//        Response response = genusResource.obtenerMovimientos(transformadorTAD.convertirAConsultaFinal(tadDTO));
+
     }
 
-//    @Path("https://expedientes.ushuaia.gob.ar/vub/webService")
-//    @POST
-//    private Response response() {
-//        return null;
-//    }
 
-//    @Path("https://expedientes.ushuaia.gob.ar/vub/webService")
-//    @POST
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public Response obtenerMovimientos(String tipo, Integer numero, Integer ano) {
-//        String appId = ;
-//        String accion = "getMovimientos";
-//        String urlWeb = "https://expedientes.ushuaia.gob.ar/vub/webService";
-//
-//
-//
-//        return null;
-//    }
 
 
 }
